@@ -1,0 +1,22 @@
+server:
+  servlet:
+    context-path: /atlas-search
+spring:
+  application:
+    name: atlas-search
+  datasource:
+    url: jdbc:postgresql://localhost:5432/atlas_db
+    username: admin
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000
