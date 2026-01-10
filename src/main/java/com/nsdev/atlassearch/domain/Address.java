@@ -1,15 +1,17 @@
 package com.nsdev.atlassearch.domain;
 
 import jakarta.persistence.Embeddable;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
+import java.io.Serializable;
 
 @Embeddable
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Address {
+@ToString
+public class Address implements Serializable {
     private String street;
     private String city;
     private String country;

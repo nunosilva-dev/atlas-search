@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.proxy.HibernateProxy;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 @Entity
@@ -14,7 +15,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Hotel {
+public class Hotel implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

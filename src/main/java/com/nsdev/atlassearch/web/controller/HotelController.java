@@ -1,7 +1,7 @@
-package com.nsdev.atlassearch.web;
+package com.nsdev.atlassearch.web.controller;
 
-import com.nsdev.atlassearch.domain.Hotel;
 import com.nsdev.atlassearch.service.HotelService;
+import com.nsdev.atlassearch.web.dto.HotelSearchResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +16,7 @@ public class HotelController {
     private final HotelService hotelService;
 
     @GetMapping("/search")
-    public Iterable<Hotel> search(
+    public HotelSearchResponse search(
             @RequestParam(required = false) String city,
             @RequestParam(required = false) Integer stars,
             @RequestParam(required = false) Boolean hasPool
