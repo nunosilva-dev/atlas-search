@@ -13,7 +13,7 @@
 
     <groupId>com.nsdev</groupId>
     <artifactId>atlas-search</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <name>atlas-search</name>
     <description>High-Performance Hotel Search Engine with QueryDSL and K8s</description>
 

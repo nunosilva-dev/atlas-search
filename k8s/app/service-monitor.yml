@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: atlas-search-monitor
+  labels:
+    release: atlas-monitoring
+spec:
+  selector:
+    matchLabels:
+      app: atlas-search
+  endpoints:
+    - port: web
+      path: atlas-search/actuator/prometheus
+      interval: 15s
