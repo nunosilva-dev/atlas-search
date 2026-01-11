@@ -79,7 +79,7 @@ We use `kind` to simulate a multi-node cluster (1 Control Plane + 2 Workers).
 ```bash
 # Create cluster using the config in k8s/kind/cluster-config.yml
 # (Ensures port 30080 maps to localhost:8080)
-KIND_EXPERIMENTAL_PROVIDER=docker kind create cluster --config k8s/kind/cluster-config.yml --name atlas-cluster
+kind create cluster --config k8s/kind/cluster-config.yml --name atlas-cluster
 ```
 
 ### 3. Deploy Platform (DB & Cache)
@@ -130,12 +130,12 @@ Once all pods are `Running` (check with `kubectl get pods -A`), you can access t
 ### Swagger UI (API Docs)
 
 Access the API documentation and test endpoints directly:
-👉 **[http://localhost:8080/swagger-ui/index.html](http://localhost:8080/swagger-ui/index.html)**
+👉 **[http://localhost:8080/atlas-search/swagger-ui/index.html](http://localhost:8080/atlas-search/swagger-ui/index.html)**
 
 ### Example Request (Curl)
 
 ```bash
-curl -X GET "http://localhost:8080/hotels/search?city=Lisbon&minStars=4" -H "accept: application/json"
+curl -X GET "http://localhost:8080/atlas-search/hotels/search?city=Lisbon&minStars=4" -H "accept: application/json"
 ```
 
 ---
