@@ -13,21 +13,21 @@ Instead of hitting the database for every request, we use a "Cache-Aside" patter
 
 ```mermaid
 graph TD
-Client[Client / Browser] -->|HTTP GET /search| LB[Load Balancer / Service]
-LB --> App[Atlas Search App]
-
+    Client["Client / Browser"] -->|HTTP GET /search| LB["Load Balancer / Service"]
+    LB --> App["Atlas Search App"]
+    
     subgraph "Application Pod (JVM)"
-        App -->|1. Check L1| Caffeine[L1 Cache (Caffeine/RAM)]
+        App -->|"1. Check L1"| Caffeine["L1 Cache (Caffeine/RAM)"]
     end
     
     subgraph "Cluster Infrastructure"
-        App -->|2. Check L2 (if L1 miss)| Redis[L2 Cache (Redis)]
-        App -->|3. Query DB (if L2 miss)| DB[(PostgreSQL)]
+        App -->|"2. Check L2 (if L1 miss)"| Redis["L2 Cache (Redis)"]
+        App -->|"3. Query DB (if L2 miss)"| DB[("PostgreSQL")]
     end
 
-    Caffeine -.->|Hit (Microseconds)| App
-    Redis -.->|Hit (Milliseconds)| App
-    DB -.->|Miss (Slow)| App
+    Caffeine -.->|"Hit (Microseconds)"| App
+    Redis -.->|"Hit (Milliseconds)"| App
+    DB -.->|"Miss (Slow)"| App
 ```
 
 1. **L1 (Caffeine):** In-memory. Instant access. Holds "hot" data.
