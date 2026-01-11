@@ -2,6 +2,7 @@ package com.nsdev.atlassearch.config;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import lombok.RequiredArgsConstructor;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.support.AbstractValueAdaptingCache;
@@ -13,17 +14,25 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+/**
+ * Custom CacheManager implementation that coordinates a Multi-Level Caching strategy.
+ * <p>
+ * <b>Strategy:</b>
+ * <ol>
+ * <li><b>L1 (Local Heap):</b> Fastest access. Checked first.</li>
+ * <li><b>L2 (Distributed Redis):</b> Fallback if L1 misses. Checked second.</li>
+ * <li><b>Synchronization:</b> If data is found in L2, it is backfilled into L1.</li>
+ * </ol>
+ * <p>
+ * This class also manually registers metrics with Micrometer to ensure visibility
+ * into cache hits/misses for both layers, overcoming limitations of proxy-based monitoring.
+ */
+@RequiredArgsConstructor
 public class LayeredCacheManager implements CacheManager {
 
     private final CacheManager l1CacheManager;
     private final CacheManager l2CacheManager;
     private final MeterRegistry meterRegistry;
-
-    public LayeredCacheManager(CacheManager l1CacheManager, CacheManager l2CacheManager, MeterRegistry meterRegistry) {
-        this.l1CacheManager = l1CacheManager;
-        this.l2CacheManager = l2CacheManager;
-        this.meterRegistry = meterRegistry;
-    }
 
     @Override
     @Nullable
@@ -43,6 +52,9 @@ public class LayeredCacheManager implements CacheManager {
         return Collections.emptyList();
     }
 
+    /**
+     * Inner class wrapper that implements the actual Layered Cache logic.
+     */
     static class LayeredCache extends AbstractValueAdaptingCache {
         private final String name;
         private final Cache l1;
@@ -57,7 +69,14 @@ public class LayeredCacheManager implements CacheManager {
             this.meterRegistry = meterRegistry;
         }
 
-        // Método auxiliar para enviar a métrica EXATA que o Grafana espera
+        /**
+         * Records cache access metrics explicitly.
+         * <p>
+         * This bypasses Spring's AOP metrics, which fail to see inside composite managers.
+         *
+         * @param result       The outcome ("hit" or "miss").
+         * @param cacheManager The specific layer being accessed.
+         */
         private void recordMetric(String result, String cacheManager) {
             meterRegistry.counter("cache.gets",
                     List.of(

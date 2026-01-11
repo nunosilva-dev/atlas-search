@@ -15,10 +15,29 @@ import org.springframework.data.redis.serializer.RedisSerializationContext;
 
 import java.time.Duration;
 
+/**
+ * Configuration for the Level 2 (L2) Distributed Cache using Redis.
+ * <p>
+ * This configuration handles the serialization of Java objects to JSON for storage in Redis,
+ * enabling human-readable data and interoperability. It is configured with a longer TTL
+ * than L1.
+ * </p>
+ */
 @Configuration
 @EnableCaching
 public class RedisConfig {
 
+    /**
+     * Creates the Redis CacheManager.
+     * <p>
+     * <b>Serialization Note:</b> Uses {@link GenericJackson2JsonRedisSerializer} with default typing
+     * to allow polymorphic deserialization. This enables storing complex objects without
+     * manual mapping, although care should be taken with class allow-lists in production.
+     * </p>
+     *
+     * @param connectionFactory the Redis connection factory (configured by Spring Boot).
+     * @return a configured {@link RedisCacheManager}.
+     */
     @Bean("redisCacheManager")
     public CacheManager redisCacheManager(RedisConnectionFactory connectionFactory) {
         ObjectMapper objectMapper = new ObjectMapper();
@@ -36,7 +55,7 @@ public class RedisConfig {
 
         return RedisCacheManager.builder(connectionFactory)
                 .cacheDefaults(config)
-                .enableStatistics()
+                .enableStatistics() // Prometheus visibility
                 .build();
     }
 }
