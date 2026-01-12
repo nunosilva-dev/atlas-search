@@ -51,17 +51,17 @@ graph TD
 
 ### Prerequisites
 
-* Docker Desktop (with at least **6GB RAM** allocated)
+* Docker Desktop
 * [Kind](https://kind.sigs.k8s.io/) (Kubernetes in Docker)
 * [Helm](https://helm.sh/) (Package Manager for K8s)
 * [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 
 ### 1. Build the Application
 
-Since this project requires **Java 21** but your local machine might be on Java 8 or 11, we can use Docker to perform
+Since this project requires **Java 21**, if we don't want to configure a default java install to match, we can use Docker to perform
 the build in an isolated container.
-Otherwise just run `mvn clean package -DskipTests` in your local environment, or use the wrapper (
-`./mvnw clean package -DskipTests` - depending on your default java version)
+Otherwise (if already daily driving a recent java version) just run `mvn clean package -DskipTests` in your local environment, or use the wrapper (
+`./mvnw clean package -DskipTests`)
 
 ```bash
 # 1. Compile and Package (This runs Maven inside a Java 21 container)
