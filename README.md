@@ -13,9 +13,9 @@ Instead of hitting the database for every request, we use a "Cache-Aside" patter
 
 ```mermaid
 graph TD
-    Client["Client / Browser"] -->|HTTP GET /search| LB["Load Balancer / Service"]
-    LB --> App["Atlas Search App"]
-    
+Client["Client / Browser"] -->|HTTP GET /search| LB["Load Balancer / Service"]
+LB --> App["Atlas Search App"]
+
     subgraph "Application Pod (JVM)"
         App -->|"1. Check L1"| Caffeine["L1 Cache (Caffeine/RAM)"]
     end
@@ -49,83 +49,80 @@ graph TD
 
 ## 🚀 Getting Started
 
+We use a **Makefile** to automate the entire lifecycle of the project, ensuring a consistent environment and
+preventing "works on my machine" issues.
+
 ### Prerequisites
 
+* **Make** (Pre-installed on macOS/Linux)
 * Docker Desktop
 * [Kind](https://kind.sigs.k8s.io/) (Kubernetes in Docker)
 * [Helm](https://helm.sh/) (Package Manager for K8s)
 * [Kubectl](https://kubernetes.io/docs/tasks/tools/)
 
-### 1. Build the Application
+### ⚡️ Quick Start
 
-Since this project requires **Java 21**, if we don't want to configure a default java install to match, we can use Docker to perform
-the build in an isolated container.
-Otherwise (if already daily driving a recent java version) just run `mvn clean package -DskipTests` in your local environment, or use the wrapper (
-`./mvnw clean package -DskipTests`)
+To create the cluster, build the app, and deploy the entire stack (Database, Cache, Monitoring, and Application) in one
+go:
 
 ```bash
-# 1. Compile and Package (This runs Maven inside a Java 21 container)
-# The resulting .jar will appear in your local target/ folder
-docker run --rm -v "$(pwd)":/usr/src/app -w /usr/src/app maven:3.9.6-eclipse-temurin-21 mvn clean package -DskipTests
-
-# 2. Build the Docker Image
-docker build -t atlas-search:v1 .
+make up
 ```
 
-### 2. Create the Kubernetes Cluster
+Wait until all pods are `Running` (check with `kubectl get pods -A`).
 
-We use `kind` to simulate a multi-node cluster (1 Control Plane + 2 Workers).
+---
+
+### 🐢 Step-by-Step (Under the Hood)
+
+If you prefer to run steps individually to understand the process:
+
+#### 1. Create the Kubernetes Cluster
+
+Creates a multi-node cluster (1 Control Plane + 2 Workers) and ensures port mapping.
 
 ```bash
-# Create cluster using the config in k8s/kind/cluster-config.yml
-# (Ensures port 30080 maps to localhost:8080)
-kind create cluster --config k8s/kind/cluster-config.yml --name atlas-cluster
+make create-cluster
 ```
 
-### 3. Deploy Platform (DB & Cache)
+#### 2. Deploy Platform (DB & Cache)
 
-Deploy Postgres (Persistent Volume) and Redis.
+Deploys Postgres and Redis with Persistent Volumes.
 
 ```bash
-kubectl apply -f k8s/platform/01-postgres.yml
-kubectl apply -f k8s/platform/02-redis.yml
-
-# Wait until they are Running
-kubectl get pods -w
+make install-platform
 ```
 
-### 4. Deploy Application
+#### 3. Deploy Observability Stack
 
-Load the local image into the cluster and deploy.
+Installs Prometheus and Grafana using Helm. *Note: This must run before the app to register ServiceMonitors.*
 
 ```bash
-# 1. Sideload the image into Kind nodes
-kind load docker-image atlas-search:v1 --name atlas-cluster
-
-# 2. Deploy the App and Service Monitors
-kubectl apply -f k8s/app/atlas-search.yml
-kubectl apply -f k8s/app/service-monitor.yml
+make install-monitoring
 ```
 
-### 5. Deploy Observability Stack
+#### 4. Build the Application
 
-Install Prometheus and Grafana using Helm.
+Uses a **Dockerized Build** process. This compiles the Java code inside a container (Java 21) and builds the final
+image, ensuring compatibility regardless of your local Java version.
 
 ```bash
-# Create namespace
-kubectl create namespace monitoring
+make build-app
+```
 
-# Install the stack
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo update
-helm install atlas-monitoring prometheus-community/kube-prometheus-stack -n monitoring
+#### 5. Deploy Application
+
+Sideloads the image into Kind and applies the Kubernetes manifests.
+
+```bash
+make install-app
 ```
 
 ---
 
 ## 🎮 Usage
 
-Once all pods are `Running` (check with `kubectl get pods -A`), you can access the application.
+Once the stack is up, you can access the application.
 
 ### Swagger UI (API Docs)
 
@@ -170,8 +167,8 @@ Prometheus metrics.
 
 ## 🧹 Cleanup
 
-To stop everything and save resources:
+To destroy the cluster and free up resources:
 
 ```bash
-kind delete cluster --name atlas-cluster
+make down
 ```
